@@ -77,14 +77,52 @@ public class Transaction {
 	{
 		Double totalValueInputs = 0D;
 		
-		for(var input: _inputArray)
+		if(_inputArray == null) return 0D;
+		
+		for(Input input: _inputArray)
 		{
-			for(var prevOutput: input.getPrevOutput())
+			for(Output prevOutput: input.getPrevOutput())
 			{
 				totalValueInputs += prevOutput.getValue();
 			}
 		}
 		
 		return Math.abs((totalValueInputs - _fee) * .00000001); //Conversion from JSON # to a Double
+	}
+	
+	//TODO check later
+	public String getSenderAddress()
+	{
+		if(_inputArray.size() == 0) return null;
+		Output biggestContributor = new Output(); 
+		
+		for(Input inp: _inputArray)
+		{
+			for(Output out: inp.getPrevOutput())
+			{
+				Integer value = out.getValue();
+				if(value > biggestContributor.getValue())
+				{
+					biggestContributor = out;
+				}
+			}
+		}
+		return biggestContributor.getAddress();
+	}
+	
+	//TODO check later
+	public String getRecipientAddress()
+	{
+		Output biggestRecipient = new Output();
+		
+		for(Output out: _outputArray)
+		{
+			Integer value = out.getValue();
+			if(value > biggestRecipient.getValue())
+			{
+				biggestRecipient = out;
+			}
+		}
+		return biggestRecipient.getAddress();
 	}
 }

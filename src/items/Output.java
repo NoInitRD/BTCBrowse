@@ -9,14 +9,16 @@ public class Output {
 	
 	private Integer _value;
 	private String _txIndex;
+	private String _address;
 
 	/**
 	 * Default constructor for output
 	 */
 	public Output() 
 	{
-		_value = null;
+		_value = 0;
 		_txIndex = null;
+		_address = null;
 	}
 	
 	/**
@@ -37,6 +39,13 @@ public class Output {
 	{
 		_value = value;
 		_txIndex = txIndex; 
+	}
+	
+	public Output(Integer value, String txIndex, String address)
+	{
+		_value = value;
+		_txIndex = txIndex; 
+		_address = address;
 	}
 
 	/**
@@ -71,6 +80,16 @@ public class Output {
 	public void setValue(int value)
 	{
 		_value = value;
+	}
+	
+	public String getAddress()
+	{
+		return _address;
+	}
+	
+	public void setAddress(String address)
+	{
+		_address = address;
 	}
 
 }

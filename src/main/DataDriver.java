@@ -7,53 +7,84 @@ import tools.Utilities;
 
 public class DataDriver {
 
-	String[] _args;
-	boolean _max; 
-	boolean _min;
-	boolean _avg;
+	ArrayList<Transaction> _currentTxList;
+	Double _conversionRate;
+	Transaction _currentMax;
 	
-	public DataDriver(String[] args) 
+	public DataDriver()
 	{
-		_args = args;
+		_currentTxList = new ArrayList<Transaction>(100); 
+		_conversionRate = Utilities.grabMoneyData("https://blockchain.info/ticker"); //get conversion rate
+		_currentMax = new Transaction(); 
 	}
 	
 	public void start()
 	{
-		Double max = 0D;
-		String maxHash = "";
-		
-		Double conversionRate = Utilities.grabMoneyData("https://blockchain.info/ticker");
-		
 		RequestBalancer lb = new RequestBalancer();
-		ArrayList<Transaction> arry = new ArrayList<Transaction>(100); 
+		lb.setRelevantTxIndex(99); //Makes sure to display first set of results
 		
 		while(true)
 		{
 			TxParser list = Utilities.grabTXData("https://blockchain.info/unconfirmed-transactions?format=json");
 									
-			for(Transaction item: list)
+			for(Transaction item: list) 
 			{
-				Double value = item.completeValue();
-				
-				Double total = value * conversionRate;
-				
-				arry.add(item);
-
-				if(total > max) {
-					max = total;
-					maxHash = item.getHash();	
+				_currentTxList.add(item);
+				if (item.completeValue() > _currentMax.completeValue())
+				{
+					_currentMax = item;
 				}
 			}
 
-			lb.setList(arry);
+			lb.setList(_currentTxList);
 			lb.balanceTime();
-			lb.setRelevantTx(arry.get(0));
+			lb.setRelevantTx(_currentTxList.get(0));
+			showTransactions(lb.getRelevantTxIndex());
+			showCurrentMax();
 						
-			arry.clear();
-
-			System.out.println(lb.getDataRate());
-			Utilities.sleep(lb.getDataRate());
+			_currentTxList.clear();
 			
+			lb.sleep(lb.getDataRate());
 		}
+	}
+	
+	private void showCurrentMax()
+	{
+		System.out.println("-------------------The Current Max is-------------------");
+		System.out.println(txToString(_currentMax));
+	}
+	
+	private void showTransactions(int stop)
+	{		
+		for(int i = 0; i < stop; i++)
+		{
+			Transaction current = _currentTxList.get(i);
+			System.out.printf(txToString(current));
+		}
+	}
+	
+	private String txToString(Transaction tx)
+	{	
+		
+		Double value = tx.completeValue();
+		Double total = value * _conversionRate;
+		String totalS = String.format("%.02f", total);
+		
+		return "(" + 
+				hashShortener(tx.getSenderAddress()) + " " +
+				"  ----" +
+				"$" + totalS +
+				"--->  " +
+				hashShortener(tx.getRecipientAddress()) +
+				") " +
+				"TX HASH: " +
+				tx.getHash() + "\n";
+		
+	}
+	
+	private String hashShortener(String hash)
+	{
+		if(hash == null) return "Missing..."; //TODO
+		return hash.substring(0, 7) + "...";
 	}
 }

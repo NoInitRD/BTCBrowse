@@ -63,7 +63,6 @@ public class TxParser implements Iterable<Transaction> {
 		public Transaction next()
 		{
 			if(!hasNext()) {throw new NoSuchElementException();}
-			
 			_index++;
 			
 			JSONObject jsonTransaction = (JSONObject) _txList.get(_index);
@@ -101,6 +100,16 @@ public class TxParser implements Iterable<Transaction> {
 			String jsonTxIndex = String.valueOf(jsonPrevOutput.getInt("tx_index"));
 			
 			Output prevOutput = new Output(jsonPrevOutputValue, jsonTxIndex); 
+			
+			try
+			{
+				prevOutput.setAddress(jsonPrevOutput.getString("addr"));
+			}
+			catch(Exception JSONException)
+			{
+				prevOutput.setAddress("Missing address");
+			}
+			
 			Input input = new Input(); 
 		
 			input.add(prevOutput);
@@ -132,9 +141,16 @@ public class TxParser implements Iterable<Transaction> {
 			
 			Output output = new Output(jsonValue, jsonTxIndex);
 			
-			result.add(output);
+			try
+			{
+				output.setAddress(jsonOutput.getString("addr"));
+			}
+			catch(Exception JSONException)
+			{
+				output.setAddress("Missing address");
+			}
 			
-
+			result.add(output);
 		}
 	
 		return result;

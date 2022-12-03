@@ -12,12 +12,14 @@ public class RequestBalancer {
 	Integer _dataRate;
 	ArrayList<Transaction> _list;
 	Transaction _relevantTx;
+	Integer _relevantTxIndex;
 	
 	public RequestBalancer() 
 	{
 		_dataRate = 8000; //default 8000ms delay
 		_list = new ArrayList<Transaction>();
 		_relevantTx = null;
+		_relevantTxIndex = 0;
 	}
 	
 	public Integer getDataRate() { return _dataRate; }
@@ -32,17 +34,19 @@ public class RequestBalancer {
 	
 	public void setRelevantTx(Transaction relevantTx) { _relevantTx = relevantTx; }
 	
+	public Integer getRelevantTxIndex() { return _relevantTxIndex; }
+	
+	public void setRelevantTxIndex(Integer index) { _relevantTxIndex = index; }
+	
 	public Integer balanceTime()
 	{
 		if(_relevantTx == null) return _dataRate;
 		
-		Integer index = indexOfRelevantTx();
-		
-		System.out.println("Last first's index in new list: " + index);
-		
-		if(index <= 20 && index >= 0) return addTime(10);
-		if(index >= 75) return removeTime(10);
-		if(index == -1) return removeTime(1000);
+		_relevantTxIndex = indexOfRelevantTx();
+				
+		if(_relevantTxIndex <= 20 && _relevantTxIndex >= 0) return addTime(10);
+		if(_relevantTxIndex >= 75) return removeTime(10);
+		if(_relevantTxIndex == -1) return removeTime(1000);
 		
 		return _dataRate;
 	}
@@ -67,5 +71,18 @@ public class RequestBalancer {
 			if(_relevantTx.getHash().equals(_list.get(i).getHash())) return i;
 		}
 		return -1;
+	}
+	
+	/**
+	 * Suspends the thread
+	 * @param ms - Time in milliseconds for thread to sleep
+	 */
+	public void sleep(int ms) 
+	{
+			try {
+				Thread.sleep(ms);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
 	}
 }
